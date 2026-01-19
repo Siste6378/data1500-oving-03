@@ -41,6 +41,21 @@ function Write-Header {
     Write-Host "$YELLOW========================================$NC"
 }
 
+# Helper function to safely convert output to string and trim
+function Get-TrimmedOutput {
+    param([object]$Output)
+    
+    if ($Output -is [System.Management.Automation.ErrorRecord]) {
+        return $Output.Exception.Message
+    }
+    
+    if ($Output -is [array] -and $Output.Count -gt 0) {
+        return ([string]$Output[0]).Trim()
+    }
+    
+    return ([string]$Output).Trim()
+}
+
 # Start
 Write-Header "TEST: Oppgave 1 - Docker-oppsett"
 
@@ -80,7 +95,7 @@ if (Test-Path $dockerComposeFile) {
 Write-Info "`nTest 4: Start PostgreSQL med docker-compose"
 Push-Location $scriptDir
 try {
-    docker-compose up -d
+    docker-compose up -d 2>&1 | Out-Null
     Start-Sleep -Seconds 5
 } catch {
     Write-Error "Kunne ikke starte docker-compose"
@@ -89,12 +104,12 @@ try {
 
 # Test 5: Verifiser at container kjører
 Write-Info "`nTest 5: Verifiser at PostgreSQL-container kjører"
-$psStatus = docker-compose ps
+$psStatus = docker-compose ps 2>&1
 if ($psStatus -match "data1500-postgres.*Up") {
     Write-Success "PostgreSQL-container kjører"
 } else {
     Write-Error "PostgreSQL-container kjører ikke"
-    docker-compose logs
+    docker-compose logs 2>&1
     exit 1
 }
 
@@ -107,7 +122,7 @@ try {
     } else {
         Write-Error "Kunne ikke koble til PostgreSQL"
         Write-Info "Debugging info:"
-        docker-compose logs postgres
+        docker-compose logs postgres 2>&1
         exit 1
     }
 } catch {
@@ -118,8 +133,9 @@ try {
 # Test 7: Verifiser at tabeller eksisterer
 Write-Info "`nTest 7: Verifiser at tabeller eksisterer"
 try {
-    $tables = docker-compose exec -T postgres psql -U admin -d data1500_db -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public'" 2>&1
-    $tables = $tables.Trim()
+    $output = docker-compose exec -T postgres psql -U admin -d data1500_db -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public'" 2>&1
+    $tables = Get-TrimmedOutput $output
+    
     if ([int]$tables -gt 0) {
         Write-Success "Tabeller funnet: $tables"
     } else {
@@ -134,9 +150,14 @@ try {
 # Test 8: Verifiser testdata
 Write-Info "`nTest 8: Verifiser testdata"
 try {
-    $studentCount = (docker-compose exec -T postgres psql -U admin -d data1500_db -t -c "SELECT COUNT(*) FROM studenter" 2>&1).Trim()
-    $programCount = (docker-compose exec -T postgres psql -U admin -d data1500_db -t -c "SELECT COUNT(*) FROM programmer" 2>&1).Trim()
-    $emneCount = (docker-compose exec -T postgres psql -U admin -d data1500_db -t -c "SELECT COUNT(*) FROM emner" 2>&1).Trim()
+    $studentOutput = docker-compose exec -T postgres psql -U admin -d data1500_db -t -c "SELECT COUNT(*) FROM studenter" 2>&1
+    $studentCount = Get-TrimmedOutput $studentOutput
+    
+    $programOutput = docker-compose exec -T postgres psql -U admin -d data1500_db -t -c "SELECT COUNT(*) FROM programmer" 2>&1
+    $programCount = Get-TrimmedOutput $programOutput
+    
+    $emneOutput = docker-compose exec -T postgres psql -U admin -d data1500_db -t -c "SELECT COUNT(*) FROM emner" 2>&1
+    $emneCount = Get-TrimmedOutput $emneOutput
     
     if ([int]$studentCount -gt 0 -and [int]$programCount -gt 0 -and [int]$emneCount -gt 0) {
         Write-Success "Testdata lastet inn"
@@ -155,7 +176,9 @@ try {
 # Test 9: Verifiser roller
 Write-Info "`nTest 9: Verifiser roller"
 try {
-    $roles = (docker-compose exec -T postgres psql -U admin -d data1500_db -t -c "SELECT COUNT(*) FROM pg_roles WHERE rolname IN ('admin_role', 'foreleser_role', 'student_role')" 2>&1).Trim()
+    $rolesOutput = docker-compose exec -T postgres psql -U admin -d data1500_db -t -c "SELECT COUNT(*) FROM pg_roles WHERE rolname IN ('admin_role', 'foreleser_role', 'student_role')" 2>&1
+    $roles = Get-TrimmedOutput $rolesOutput
+    
     if ([int]$roles -eq 3) {
         Write-Success "Alle roller opprettet"
     } else {
@@ -204,7 +227,7 @@ Write-Host "$GREEN========================================$NC"
 
 # Cleanup
 Write-Info "`nStopper PostgreSQL..."
-docker-compose down
+docker-compose down 2>&1 | Out-Null
 Write-Success "PostgreSQL stoppet"
 
 Pop-Location
