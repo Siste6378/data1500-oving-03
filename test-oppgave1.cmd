@@ -137,7 +137,7 @@ if "%ROLES%"=="" set "ROLES=0"
 if %ROLES% equ 3 (
     echo %SUCCESS% Alle roller opprettet
 ) else (
-    echo %ERROR% Ikke alle roller funnet (funnet: %ROLES%)
+    echo %ERROR% Ikke alle roller funnet, funnet: %ROLES%
     exit /b 1
 )
 
