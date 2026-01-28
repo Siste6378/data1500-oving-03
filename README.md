@@ -1,5 +1,5 @@
 # data1500-oving-03
-Oppgavesett 1.3 i DATA1500 våren 2026. Docker installasjon og introduksjon i databasehåndteringssystemer med fokus på databaseadministrasjon.
+Oppgavesett 1.3 i DATA1500 våren 2026. - DOCKER INSTALLASJON OG INTRODUKSJON I DATABASEHÅNDTERINGSSYSTEMER MED FOKUS PÅ DATABASEADMINISTRASJON
 
 # Docker: nyttige kommandoer (muligens flytte ut til egen fil DOCKER-TIPS.md)
 

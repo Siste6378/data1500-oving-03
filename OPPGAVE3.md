@@ -82,6 +82,15 @@ DELETE FROM studenter WHERE student_id = 1;
 ```
 
 Hva skjer? Dokumenter resultatene.
+-- SELECT * FROM studenter; 
+Funket i terminalen ✅
+
+-- INSERT INTO studenter (fornavn, etternavn, epost, program_id)
+VALUES ('Test', 'Bruker', 'test@example.com', 1);
+Funket i terminalen ✅
+
+-- DELETE FROM studenter WHERE student_id = 1;
+Funket ikke, ikke tilgang ❌
 
 ### Del 3: Test tilgang som student
 
@@ -108,6 +117,15 @@ UPDATE studenter SET fornavn = 'Ola' WHERE student_id = 1;
 ```
 
 Hva skjer? Dokumenter resultatene.
+-- SELECT * FROM studenter;
+Funket i terminalen ✅
+
+-- INSERT INTO studenter (fornavn, etternavn, epost, program_id)
+VALUES ('Test', 'Bruker', 'test@example.com', 1);
+Funket ikke, ikke tilgang ❌
+
+-- DELETE FROM studenter WHERE student_id = 1;
+Funket ikke, ikke tilgang ❌
 
 ### Del 4: Opprett ny rolle med begrenset tilgang
 
